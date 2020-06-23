@@ -1,9 +1,13 @@
-<html>
+<!DOCTYPE html>
+<html lang="en_us">
 <head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<style type="text/css">
 		html,body{
 			margin: 0;
 			padding: 0;
+			overflow: hidden;
 		}
 		canvas {
 			width: 100%;
@@ -12,7 +16,8 @@
 
 		#game {
 			width: 100%;
-			height: 100%;
+			height: 100vh;
+
 		}
 	</style>
 </head>
@@ -26,6 +31,10 @@
 	var updateIntervalId;
 
 	var camera = {x: 0, y: 0, center: {x: 0, y: 0}, movementSpeed: 3};
+	var isDragging = false;
+	var dragCompleted = false;
+	var startDrag = {x: 0, y: 0};
+	var dragDelta = {x: 0, y: 0};
 	var keys = [];
 
 	var player = {
@@ -37,6 +46,7 @@
 		angle: 90 * Math.PI / 180,
 		rotationSpeed: 3 * Math.PI / 180,
 		movementSpeed: 3,
+		target: {x: 50, y: 50},
 	};
 	</script>
 <script>
@@ -77,7 +87,7 @@
 
 	function draw(context) {
 		context.save();
-		context.translate(-camera.x, -camera.y);
+		context.translate(-camera.x + dragDelta.x, -camera.y + dragDelta.y);
 
 		drawBackground(context);
 		drawPlayer(context);
@@ -103,6 +113,46 @@
 	function onKeyUp(event) {
 		keys[event.keyCode] = false;
 	}
+
+	function onMouseMove(event) {
+		if(isDragging) {
+			dragDelta.x = event.clientX - startDrag.x;
+			dragDelta.y = event.clientY - startDrag.y;
+		}
+	}
+
+	function onMouseDown(event) {
+		if(isDragging) {
+			return;
+		}
+		dragCompleted = false;
+		if(event.button == 0) {
+			isDragging = true;
+		}
+		
+		startDrag.x = event.clientX;
+		startDrag.y = event.clientY;
+		dragDelta.x = 0;
+		dragDelta.y = 0;
+		startDrag.time = new Date().getUTCMilliseconds();
+	}
+
+	function onMouseUp(event) {
+		if(event.button == 2) { //startDrag.time + 100 >= new Date().getUTCMilliseconds()
+			player.target.x = camera.x + startDrag.x;
+			player.target.y = camera.y + startDrag.y;
+			return;
+		}
+
+		if(isDragging) {
+			isDragging = false;
+			dragCompleted = true;
+		}
+	}
+
+	function onRightClick(event) {
+		event.preventDefault();
+	}
 </script>
 
 <script>
@@ -122,7 +172,10 @@
 	window.addEventListener("resize", onResize);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
-	
+    window.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("contextmenu", onRightClick);
 </script>
 
 <script>
@@ -145,11 +198,12 @@
 	}
 
 	function updateBackground(delta) {
+		let isOutOfBounds = false;
 		if(camera.y < -1280) {
 			camera.y = -1280;
 		}
 
-		if(camera.y + canvas.height > 1280) {
+		if(camera.y + canvas.height  > 1280) {
 			camera.y = 1280 - canvas.height;
 		}
 
@@ -157,10 +211,40 @@
 			camera.x = -1280;
 		}
 
-		if(camera.x+ canvas.width > 1280) {
+		if(camera.x + canvas.width > 1280) {
 			camera.x = 1280 - canvas.width;
 		}
 
+		if(camera.y - dragDelta.y < -1280) {
+			isOutOfBounds = true;
+		}
+
+		if((camera.y + canvas.height) - dragDelta.y  > 1280) {
+			isOutOfBounds = true;
+		}
+
+		if(camera.x - dragDelta.x < -1280) {
+			isOutOfBounds = true;
+		}
+
+		if((camera.x + canvas.width) - dragDelta.x > 1280) {
+			isOutOfBounds = true;
+		}
+		
+		if(dragCompleted) {
+			if(isOutOfBounds) {
+				camera.x -= dragDelta.x * 0.1;
+				camera.y -= dragDelta.y * 0.1;
+				dragDelta.x = dragDelta.x * 0.90;
+				dragDelta.y = dragDelta.y * 0.90;
+			} else {
+				camera.x -= dragDelta.x;
+				camera.y -= dragDelta.y;
+				dragDelta.x = 0;
+				dragDelta.y = 0;
+				dragCompleted = false;
+			}
+		}
 	}
 
 	function drawBackground(context) {
@@ -173,24 +257,27 @@
 				context.stroke();
 			}	
 		}
-		
 	}
 
 	function updatePlayer(delta) {
 		if(keys[KeyCode.W]) {
 			player.y += -player.movementSpeed * delta;
+			player.target.y = player.y;
 		}
 
 		if(keys[KeyCode.S]) {
 			player.y += player.movementSpeed * delta;
+			player.target.y = player.y;
 		}
 
 		if(keys[KeyCode.A]) {
 			player.x += -player.movementSpeed * delta;
+			player.target.x = player.x;
 		}
 
 		if(keys[KeyCode.D]) {
 			player.x += player.movementSpeed * delta;
+			player.target.x = player.x;
 		}
 
 		if(keys[KeyCode.Q]) {
@@ -201,6 +288,21 @@
 			player.angle += player.rotationSpeed * delta;
 		}
 
+		if(Math.abs(player.x - player.target.x) <= player.movementSpeed) {
+			player.x = player.target.x;
+		}
+
+		if(Math.abs(player.y - player.target.y) <= player.movementSpeed) {
+			player.y = player.target.y;
+		}
+
+		if(player.target.x != player.x || player.target.y != player.y) {
+			let angle = (Math.atan2(player.target.y - player.y, player.target.x - player.x));
+			player.x += player.movementSpeed * Math.cos(angle);
+			player.y += player.movementSpeed * Math.sin(angle);
+
+
+		}
 	}
 	function drawPlayer(context) {
 		context.save();
