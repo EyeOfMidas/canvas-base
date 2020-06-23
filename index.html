@@ -156,6 +156,7 @@
 
 	function onTouchStart(event) {
 		if(event.touches.length == 2) {
+			isDragging = true;
 			startDrag.x = parseInt(event.targetTouches[0].clientX);
 			startDrag.y = parseInt(event.targetTouches[0].clientY);
 			dragDelta.x = 0;
@@ -173,15 +174,17 @@
 	}
 
 	function onTouchEnd(event) {
-		if(event.touches.length == 1) {
+		if(isDragging) {
+			isDragging = false;
 			dragCompleted = true;
-			startDrag.x = 0;
-			startDrag.y = 0;
-		} else {
-			if(!dragCompleted && event.touches.length == 0) {
+			return;
+		}
+
+		if(event.touches.length == 0) { //I've let go of all points
+			if(!isDragging && !dragCompleted) {
 				player.target.x = camera.x + parseInt(event.changedTouches[0].clientX);
 				player.target.y = camera.y + parseInt(event.changedTouches[0].clientY);
-			}		
+			}
 		}
 	}
 </script>
@@ -272,6 +275,11 @@
 				camera.y -= dragDelta.y * 0.1;
 				dragDelta.x = dragDelta.x * 0.90;
 				dragDelta.y = dragDelta.y * 0.90;
+				if(Math.abs(dragDelta.x) <= 1 &&Math.abs(dragDelta.y) <= 1){
+					dragDelta.x = 0;
+					dragDelta.y = 0;
+					dragCompleted = false;
+				}
 			} else {
 				camera.x -= dragDelta.x;
 				camera.y -= dragDelta.y;
