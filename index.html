@@ -153,6 +153,37 @@
 	function onRightClick(event) {
 		event.preventDefault();
 	}
+
+	function onTouchStart(event) {
+		if(event.touches.length == 2) {
+			startDrag.x = parseInt(event.targetTouches[0].clientX);
+			startDrag.y = parseInt(event.targetTouches[0].clientY);
+			dragDelta.x = 0;
+			dragDelta.y = 0;
+			startDrag.time = new Date().getUTCMilliseconds();
+		}
+	}
+
+	function onTouchMove(event) {
+		if(event.touches.length == 2) {
+			dragDelta.x = parseInt(event.targetTouches[0].clientX) - startDrag.x;
+			dragDelta.y = parseInt(event.targetTouches[0].clientY) - startDrag.y;
+		}
+
+	}
+
+	function onTouchEnd(event) {
+		if(event.touches.length == 1) {
+			dragCompleted = true;
+			startDrag.x = 0;
+			startDrag.y = 0;
+		} else {
+			if(!dragCompleted && event.touches.length == 0) {
+				player.target.x = camera.x + parseInt(event.changedTouches[0].clientX);
+				player.target.y = camera.y + parseInt(event.changedTouches[0].clientY);
+			}		
+		}
+	}
 </script>
 
 <script>
@@ -176,6 +207,10 @@
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
     window.addEventListener("contextmenu", onRightClick);
+
+    window.addEventListener("touchstart", onTouchStart);
+    window.addEventListener("touchmove", onTouchMove);
+    window.addEventListener("touchend", onTouchEnd);
 </script>
 
 <script>
