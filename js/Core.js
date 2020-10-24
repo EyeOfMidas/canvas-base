@@ -1,4 +1,5 @@
 import { KeyCode } from './KeyCode.js';
+import { Tween } from './manualtween.js';
 var canvas;
 var context;
 var lastTime;
