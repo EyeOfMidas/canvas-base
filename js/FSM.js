@@ -1,3 +1,15 @@
+/*
+Each State should adhere to this interface:
+
+export class ExampleState {
+    constructor() { }
+    async start() { }
+    async end() { }
+    update(delta) { }
+    draw(context) { }
+}
+
+*/
 export class FiniteStateMachine {
     constructor() {
         this.states = {};
@@ -15,7 +27,9 @@ export class FiniteStateMachine {
     async transitionTo(key) {
         let lastState = this.currentState;
         this.currentState = this.states[key];
-        await lastState.end(this.currentState);
+        if (lastState) {
+            await lastState.end(this.currentState);
+        }
         await this.currentState.start(lastState);
     }
 

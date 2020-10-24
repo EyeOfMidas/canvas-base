@@ -1,4 +1,5 @@
 import { FiniteStateMachine } from './FSM.js';
+import { LoadingState } from './states/LoadingState.js';
 import { GameState } from './states/GameState.js';
 
 export var canvas;
@@ -8,8 +9,10 @@ var updateIntervalId;
 
 export var fsm = new FiniteStateMachine();
 export const StateKey = {
-    Game: 1,
+    Loading: 1,
+    Game: 2,
 };
+fsm.addState(StateKey.Loading, new LoadingState());
 fsm.addState(StateKey.Game, new GameState());
 fsm.setState(StateKey.Game);
 

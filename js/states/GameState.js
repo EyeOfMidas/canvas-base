@@ -1,6 +1,5 @@
-import { canvas } from '../Core.js';
-import { keys } from '../KeyboardInput.js';
-import { KeyCode } from '../KeyCode.js';
+import { canvas, fsm, StateKey } from '../Core.js';
+import { keys, KeyCode } from '../KeyboardInput.js';
 export class GameState {
     constructor() {
         this.camera = { x: 0, y: 0, center: { x: 0, y: 0 }, movementSpeed: 3 };
@@ -22,7 +21,18 @@ export class GameState {
         };
     }
 
+    async start() {
+    }
+
+    async end() {
+    }
+
     update(delta) {
+        if (keys[KeyCode.Escape]) {
+            fsm.transitionTo(StateKey.Loading);
+            delete (keys[KeyCode.Escape]);
+            return;
+        }
         this.updateCamera(delta);
         this.updateBackground(delta);
         this.updatePlayer(delta);
