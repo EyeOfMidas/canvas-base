@@ -1,27 +1,25 @@
 import { FiniteStateMachine } from './FSM.js';
 import { LoadingState } from './states/LoadingState.js';
 import { GameState } from './states/GameState.js';
-
 export var canvas;
 var context;
 var lastTime;
 var updateIntervalId;
 
-export var fsm = new FiniteStateMachine();
+
 export const StateKey = {
     Loading: 1,
     Game: 2,
 };
+
+export var fsm = new FiniteStateMachine();
 fsm.addState(StateKey.Loading, new LoadingState());
 fsm.addState(StateKey.Game, new GameState());
-fsm.setState(StateKey.Game);
+fsm.transitionTo(StateKey.Loading);
 
 function animate() {
-    context.save();
-    context.translate(0.5, 0.5);
     clearFrame(context);
     fsm.drawCurrentState(context);
-    context.restore();
     requestAnimationFrame(animate);
 }
 
@@ -40,41 +38,25 @@ function tick(delta) {
     fsm.updateCurrentState(delta);
 }
 
+function getPixelRatio(context) {
+    let dpr = window.devicePixelRatio || 1;
+    let bsr = context.webkitBackingStorePixelRatio ||
+        context.mozBackingStorePixelRatio ||
+        context.msBackingStorePixelRatio ||
+        context.oBackingStorePixelRatio ||
+        context.backingStorePixelRatio || 1;
+
+    return dpr / bsr;
+}
+
 function onResize() {
-    let dpi = window.devicePixelRatio;
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-    context.width = canvas.clientWidth / dpi;
-    context.height = canvas.clientHeight / dpi;
+    let ratio = getPixelRatio(context);
+    let canvasBounds = canvas.getBoundingClientRect();
+    canvas.width = canvasBounds.width * ratio;
+    canvas.height = canvasBounds.height * ratio;
+    context.scale(ratio, ratio);
 
     fsm.onResize();
-}
-function onMouseMove(event) {
-    fsm.onMouseMove(event);
-}
-
-function onMouseDown(event) {
-    fsm.onMouseDown(event);
-}
-
-function onMouseUp(event) {
-    fsm.onMouseUp(event);
-}
-
-function onRightClick(event) {
-    fsm.onRightClick(event);
-}
-
-function onTouchStart(event) {
-    fsm.onTouchStart(event);
-}
-
-function onTouchMove(event) {
-    fsm.onTouchMove(event);
-}
-
-function onTouchEnd(event) {
-    fsm.onTouchEnd(event);
 }
 
 document.addEventListener("DOMContentLoaded", event => {
@@ -91,11 +73,11 @@ document.addEventListener("DOMContentLoaded", event => {
 });
 
 window.addEventListener("resize", onResize);
-window.addEventListener("mousedown", onMouseDown);
-window.addEventListener("mousemove", onMouseMove);
-window.addEventListener("mouseup", onMouseUp);
-window.addEventListener("contextmenu", onRightClick);
+window.addEventListener("mousedown", fsm.onMouseDown);
+window.addEventListener("mousemove", fsm.onMouseMove);
+window.addEventListener("mouseup", fsm.onMouseUp);
+window.addEventListener("contextmenu", fsm.onRightClick);
 
-window.addEventListener("touchstart", onTouchStart);
-window.addEventListener("touchmove", onTouchMove);
-window.addEventListener("touchend", onTouchEnd);
+window.addEventListener("touchstart", fsm.onTouchStart);
+window.addEventListener("touchmove", fsm.onTouchMove);
+window.addEventListener("touchend", fsm.onTouchEnd);

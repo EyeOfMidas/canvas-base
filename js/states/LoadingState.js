@@ -8,14 +8,15 @@ export class LoadingState {
     async end() { }
     update(delta) { }
     draw(context) {
+        let canvasBounds = canvas.getBoundingClientRect();
         context.fillStyle = "black";
         context.beginPath();
-        context.rect(0, 0, canvas.width, canvas.height);
+        context.rect(0, 0, canvasBounds.width, canvasBounds.height);
         context.fill();
 
         context.fillStyle = "white";
         context.font = "48px Ariel";
         context.textAlign = "center";
-        context.fillText("Loading...", canvas.width / 2, canvas.height / 2);
+        context.fillText("Loading...", canvasBounds.width / 2, canvasBounds.height / 2);
     }
 }

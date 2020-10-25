@@ -1,3 +1,4 @@
+import { Logger } from "./Logger.js";
 /*
 Each State should adhere to this interface:
 
@@ -21,56 +22,88 @@ export class FiniteStateMachine {
     }
 
     setState(key) {
-        this.currentState = this.states[key];
+        this.currentState = key;
     }
 
     async transitionTo(key) {
-        let lastState = this.currentState;
-        this.currentState = this.states[key];
+        let lastState = this.getCurrentState();
+        this.currentState = key;
         if (lastState) {
-            await lastState.end(this.currentState);
+            await lastState.end(this.getCurrentState());
         }
-        await this.currentState.start(lastState);
+        await this.getCurrentState().start(lastState);
     }
 
     updateCurrentState(delta) {
-        this.currentState.update(delta);
+        this.getCurrentState().update(delta);
     }
 
     drawCurrentState(context) {
-        this.currentState.draw(context);
+        this.getCurrentState().draw(context);
     }
 
-    onResize() {
-        if (!this.currentState.hasOwnProperty('onResize')) return;
-        this.currentState.onResize();
+    getCurrentState() {
+        return this.states[this.currentState];
     }
-    onMouseMove(event) {
-        if (!this.currentState.hasOwnProperty('onMouseMove')) return;
-        this.currentState.onMouseMove(event);
+
+    currentStateHas(functionName) {
+        return typeof this.getCurrentState()[functionName] == 'function';
     }
-    onMouseDown(event) {
-        if (!this.currentState.hasOwnProperty('onMouseDown')) return;
-        this.currentState.onMouseDown(event);
+
+    onResize = () => {
+        if (!this.currentStateHas('onResize')) {
+            Logger.warn("no handler for onResize", this.currentState);
+            return;
+        }
+        this.getCurrentState().onResize();
     }
-    onMouseUp(event) {
-        if (!this.currentState.hasOwnProperty('onMouseUp')) return;
-        this.currentState.onMouseUp(event);
+    onMouseMove = (event) => {
+        if (!this.currentStateHas('onMouseMove')) {
+            Logger.warn("no handler for onMouseMove", this.currentState);
+            return;
+        }
+        this.getCurrentState().onMouseMove(event);
     }
-    onRightClick(event) {
-        if (!this.currentState.hasOwnProperty('onRightClick')) return;
-        this.currentState.onRightClick(event);
+    onMouseDown = (event) => {
+        if (!this.currentStateHas('onMouseDown')) {
+            Logger.warn("no handler for onMouseDown", this.currentState);
+            return;
+        }
+        this.getCurrentState().onMouseDown(event);
     }
-    onTouchStart(event) {
-        if (!this.currentState.hasOwnProperty('onTouchStart')) return;
-        this.currentState.onTouchStart(event);
+    onMouseUp = (event) => {
+        if (!this.currentStateHas('onMouseUp')) {
+            Logger.warn("no handler for onMouseUp", this.currentState);
+            return;
+        }
+        this.getCurrentState().onMouseUp(event);
     }
-    onTouchMove(event) {
-        if (!this.currentState.hasOwnProperty('onTouchMove')) return;
-        this.currentState.onTouchMove(event);
+    onRightClick = (event) => {
+        if (!this.currentStateHas('onRightClick')) {
+            Logger.warn("no handler for onRightClick", this.currentState);
+            return;
+        }
+        this.getCurrentState().onRightClick(event);
     }
-    onTouchEnd(event) {
-        if (!this.currentState.hasOwnProperty('onTouchEnd')) return;
-        this.currentState.onTouchEnd(event);
+    onTouchStart = (event) => {
+        if (!this.currentStateHas('onTouchStart')) {
+            Logger.warn("no handler for onTouchStart", this.currentState);
+            return;
+        }
+        this.getCurrentState().onTouchStart(event);
+    }
+    onTouchMove = (event) => {
+        if (!this.currentStateHas('onTouchMove')) {
+            Logger.warn("no handler for onTouchMove", this.currentState);
+            return;
+        }
+        this.getCurrentState().onTouchMove(event);
+    }
+    onTouchEnd = (event) => {
+        if (!this.currentStateHas('onTouchEnd')) {
+            Logger.warn("no handler for onTouchEnd", this.currentState);
+            return;
+        }
+        this.getCurrentState().onTouchEnd(event);
     }
 }

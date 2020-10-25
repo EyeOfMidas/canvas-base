@@ -2,6 +2,10 @@ import { canvas, fsm, StateKey } from '../Core.js';
 import { keys, KeyCode } from '../KeyboardInput.js';
 export class GameState {
     constructor() {
+        this.init();
+    }
+
+    init() {
         this.camera = { x: 0, y: 0, center: { x: 0, y: 0 }, movementSpeed: 3 };
         this.isDragging = false;
         this.dragCompleted = false;
@@ -22,6 +26,7 @@ export class GameState {
     }
 
     async start() {
+        this.init();
     }
 
     async end() {
@@ -50,11 +55,12 @@ export class GameState {
     }
 
     onResize() {
-        this.camera.center.x = canvas.width / 2;
-        this.camera.center.y = canvas.height / 2;
+        let canvasBounds = canvas.getBoundingClientRect();
+        this.camera.center.x = canvasBounds.width / 2;
+        this.camera.center.y = canvasBounds.height / 2;
     }
     onMouseMove(event) {
-        if (isDragging) {
+        if (this.isDragging) {
             this.dragDelta.x = event.clientX - this.startDrag.x;
             this.dragDelta.y = event.clientY - this.startDrag.y;
         }
@@ -78,8 +84,8 @@ export class GameState {
 
     onMouseUp(event) {
         if (event.button == 2) { //startDrag.time + 100 >= new Date().getUTCMilliseconds()
-            player.target.x = this.camera.x + this.startDrag.x;
-            player.target.y = this.camera.y + this.startDrag.y;
+            this.player.target.x = this.camera.x + this.startDrag.x;
+            this.player.target.y = this.camera.y + this.startDrag.y;
             return;
         }
 
@@ -146,28 +152,29 @@ export class GameState {
     }
 
     updateBackground(delta) {
+        let canvasBounds = canvas.getBoundingClientRect();
         let isOutOfBounds = false;
         if (this.camera.y < -1280) {
             this.camera.y = -1280;
         }
 
-        if (this.camera.y + canvas.height > 1280) {
-            this.camera.y = 1280 - canvas.height;
+        if (this.camera.y + canvasBounds.height > 1280) {
+            this.camera.y = 1280 - canvasBounds.height;
         }
 
         if (this.camera.x < -1280) {
             this.camera.x = -1280;
         }
 
-        if (this.camera.x + canvas.width > 1280) {
-            this.camera.x = 1280 - canvas.width;
+        if (this.camera.x + canvasBounds.width > 1280) {
+            this.camera.x = 1280 - canvasBounds.width;
         }
 
         if (this.camera.y - this.dragDelta.y < -1280) {
             isOutOfBounds = true;
         }
 
-        if ((this.camera.y + canvas.height) - this.dragDelta.y > 1280) {
+        if ((this.camera.y + canvasBounds.height) - this.dragDelta.y > 1280) {
             isOutOfBounds = true;
         }
 
@@ -175,7 +182,7 @@ export class GameState {
             isOutOfBounds = true;
         }
 
-        if ((this.camera.x + canvas.width) - this.dragDelta.x > 1280) {
+        if ((this.camera.x + canvasBounds.width) - this.dragDelta.x > 1280) {
             isOutOfBounds = true;
         }
 
